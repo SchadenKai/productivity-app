@@ -112,3 +112,40 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=40)
+
+from datetime import datetime
+from typing import Optional
+from sqlmodel import Field, Relationship, SQLModel
+import uuid
+
+class ProjectBase(SQLModel):
+    name: str = Field(max_length=255)
+    description: Optional[str] = Field(default=None, max_length=255)
+
+class Project(ProjectBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    tasks: list["Task"] = Relationship(back_populates="project", cascade="all, delete-orphan")
+
+class ProjectCreate(ProjectBase):
+    pass
+
+class ProjectRead(ProjectBase):
+    id: uuid.UUID
+
+class TaskBase(SQLModel):
+    title: str = Field(max_length=255)
+    description: Optional[str] = Field(default=None, max_length=255)
+    due_date: Optional[datetime] = None
+    is_completed: bool = Field(default=False)
+
+class Task(TaskBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    project_id: uuid.UUID = Field(foreign_key="project.id")
+    project: Optional[Project] = Relationship(back_populates="tasks")
+
+class TaskCreate(TaskBase):
+    project_id: uuid.UUID
+
+class TaskRead(TaskBase):
+    id: uuid.UUID
+    project_id: uuid.UUID

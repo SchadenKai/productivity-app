@@ -52,3 +52,23 @@ def create_item(*, session: Session, item_in: ItemCreate, owner_id: uuid.UUID) -
     session.commit()
     session.refresh(db_item)
     return db_item
+
+def create_project(*, session: Session, project_in: ProjectCreate) -> Project:
+    db_project = Project.model_validate(project_in)
+    session.add(db_project)
+    session.commit()
+    session.refresh(db_project)
+    return db_project
+
+def get_project(*, session: Session, project_id: uuid.UUID) -> Project | None:
+    return session.get(Project, project_id)
+
+def create_task(*, session: Session, task_in: TaskCreate) -> Task:
+    db_task = Task.model_validate(task_in)
+    session.add(db_task)
+    session.commit()
+    session.refresh(db_task)
+    return db_task
+
+def get_task(*, session: Session, task_id: uuid.UUID) -> Task | None:
+    return session.get(Task, task_id)
