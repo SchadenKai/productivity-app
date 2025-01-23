@@ -149,3 +149,43 @@ class TaskCreate(TaskBase):
 class TaskRead(TaskBase):
     id: uuid.UUID
     project_id: uuid.UUID
+
+# Habit Management Models
+class HabitBase(SQLModel):
+    name: str = Field(max_length=255)
+    description: str | None = Field(default=None, max_length=255)
+    user_id: uuid.UUID = Field(foreign_key="user.id")
+    timezone: str = Field(default="UTC", max_length=50)
+    reset_time: str = Field(default="06:00", max_length=5)  # Format: "HH:MM"
+    is_completed: bool = Field(default=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class Habit(HabitBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user: User = Relationship(back_populates="habits")
+    streak: int = Field(default=0)
+    last_completed: datetime | None = None
+
+class HabitCreate(HabitBase):
+    pass
+
+class HabitUpdate(SQLModel):
+    name: str | None = Field(default=None, max_length=255)
+    description: str | None = Field(default=None, max_length=255)
+    reset_time: str | None = Field(default=None, max_length=5)
+    timezone: str | None = Field(default=None, max_length=50)
+    is_completed: bool | None = None
+
+class HabitPublic(HabitBase):
+    id: uuid.UUID
+    streak: int
+    completion_rate: float = 0.0
+    last_completed: datetime | None
+
+# Add habits relationship to User model
+class User(UserBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    hashed_password: str
+    items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+    habits: list["Habit"] = Relationship(back_populates="user", cascade_delete=True)
